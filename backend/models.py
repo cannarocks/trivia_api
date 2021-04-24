@@ -3,11 +3,17 @@ from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-database_name = os.environ.get("DB_NAME")
-database_user = os.environ.get("DB_USER_CREDENTIAL")
-database_host = os.environ.get("DB_HOST")
-database_path = "postgresql://{}@{}/{}".format(database_user, database_host, database_name)
 
+# From .env var returns the db path
+def get_db_path(test_env=False):
+    db_name = os.environ.get("TEST_DB_NAME") if test_env else os.environ.get("DB_NAME")
+    db_user = os.environ.get("DB_USER")
+    db_psw = os.environ.get("DB_PSW")
+    db_port = os.environ.get("DB_PORT")
+    return "postgresql://{}:{}@localhost:{}/{}".format(db_user, db_psw, db_port, db_name)
+
+
+database_path = get_db_path()
 db = SQLAlchemy()
 
 '''
@@ -18,7 +24,7 @@ setup_db(app)
 
 def setup_db(app, database_path=database_path):
     app.config["SQLALCHEMY_DATABASE_URI"] = database_path
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS")
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = bool(os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS"))
     db.app = app
     db.init_app(app)
     db.create_all()

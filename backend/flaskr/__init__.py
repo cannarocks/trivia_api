@@ -14,10 +14,22 @@ def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_object('config')
     setup_db(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
+    # CORS Headers 
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response
 
     @app.route('/')
-    def hello_world():
-        return 'Hello, World!'
+    def home():
+        return jsonify({'success': True, 'message': "Welcome to Trivia API", 'routes': ['questions', 'categories']})
+
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify(success=False, error=404, message="Route not found"), 404
 
     '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
