@@ -17,7 +17,7 @@ class TriviaTestCase(unittest.TestCase):
         self.database_name = os.environ.get("DB_NAME")
         self.database_user = os.environ.get("DB_USER_CREDENTIAL")
         self.database_host = os.environ.get("DB_HOST")
-        self.database_path = "postgres://{}@{}/{}".format(self.database_user, self.database_host, self.database_name)
+        self.database_path = "postgresql://{}@{}/{}".format(self.database_user, self.database_host, self.database_name)
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context

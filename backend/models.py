@@ -6,7 +6,7 @@ import json
 database_name = os.environ.get("DB_NAME")
 database_user = os.environ.get("DB_USER_CREDENTIAL")
 database_host = os.environ.get("DB_HOST")
-database_path = "postgres://{}@{}/{}".format(database_user, database_host, database_name)
+database_path = "postgresql://{}@{}/{}".format(database_user, database_host, database_name)
 
 db = SQLAlchemy()
 
