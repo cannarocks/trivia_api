@@ -6,11 +6,11 @@ import json
 
 # From .env var returns the db path
 def get_db_path(test_env=False):
-    db_name = os.environ.get("TEST_DB_NAME") if test_env else os.environ.get("DB_NAME")
-    db_user = os.environ.get("DB_USER")
-    db_psw = os.environ.get("DB_PSW")
-    db_port = os.environ.get("DB_PORT")
-    return "postgresql://{}:{}@localhost:{}/{}".format(db_user, db_psw, db_port, db_name)
+    db_name = os.environ.get("TEST_DB_NAME", default="trivia_test") if test_env else os.environ.get("DB_NAME", default="trivia")
+    db_user = os.environ.get("DB_USER", default="guest")
+    db_psw = os.environ.get("DB_PSW", default="guest")
+    database_port = int(os.environ.get("DB_PORT", default=54333))
+    return f"postgresql://{db_user}:{db_psw}@localhost:{database_port}/{db_name}"
 
 
 database_path = get_db_path()
@@ -22,8 +22,8 @@ setup_db(app)
 '''
 
 
-def setup_db(app, database_path=database_path):
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_path
+def setup_db(app, database_uri=database_path):
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = bool(os.environ.get("SQLALCHEMY_TRACK_MODIFICATIONS"))
     db.app = app
     db.init_app(app)

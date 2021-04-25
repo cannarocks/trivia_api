@@ -1,7 +1,8 @@
 aniso8601==6.0.0
 Click==7.0
 Flask==1.0.3
-Flask-Cors==3.0.7
+# Flask-Cors==3.0.7
+Flask-Cors==3.0.10
 Flask-RESTful==0.3.7
 Flask-SQLAlchemy==2.5.1
 SQLAlchemy~=1.4.3
@@ -12,3 +13,4 @@ psycopg2-binary~=2.8.2
 pytz==2019.1
 six==1.12.0
 Werkzeug==0.15.5
+python-dotenv~=0.17.0

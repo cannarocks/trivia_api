@@ -9,10 +9,19 @@ from models import setup_db, Question, Category
 QUESTIONS_PER_PAGE = 10
 
 
+def paginate_questions(req, items):
+    page = req.args.get('page', 1, type=int)
+    start = (page - 1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+
+    questions = [question.format() for question in items]
+
+    return questions[start:end]
+
+
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
-    app.config.from_object('config')
     setup_db(app)
     CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -26,6 +35,16 @@ def create_app(test_config=None):
     @app.route('/')
     def home():
         return jsonify({'success': True, 'message': "Welcome to Trivia API", 'routes': ['questions', 'categories']})
+
+    @app.route('/questions')
+    def get_questions():
+        items = Question.query.order_by(Question.id).all()
+        selection = paginate_questions(request, items)
+
+        if len(selection) == 0:
+            abort(404)
+
+        return jsonify({'success': True, 'questions': selection, 'total_questions': len(Question.query.all())})
 
     @app.errorhandler(404)
     def not_found_error(error):
