@@ -4,6 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
@@ -25,7 +27,7 @@ def create_app(test_config=None):
     setup_db(app)
     CORS(app, resources={r"/*": {"origins": "*"}})
 
-    # CORS Headers 
+    # CORS Headers
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
@@ -36,7 +38,20 @@ def create_app(test_config=None):
     def home():
         return jsonify({'success': True, 'message': "Welcome to Trivia API", 'routes': ['questions', 'categories']})
 
-    @app.route('/questions')
+    '''
+         @TODO: 
+         Create an endpoint to handle GET requests for questions, 
+         including pagination (every 10 questions). 
+         This endpoint should return a list of questions, 
+         number of total questions, current category, categories. 
+
+         TEST: At this point, when you start the application
+         you should see questions and categories generated,
+         ten questions per page and pagination at the bottom of the screen for three pages.
+         Clicking on the page numbers should update the questions. 
+    '''
+
+    @app.route('/questions', methods=['GET'])
     def get_questions():
         items = Question.query.order_by(Question.id).all()
         selection = paginate_questions(request, items)
@@ -44,38 +59,99 @@ def create_app(test_config=None):
         if len(selection) == 0:
             abort(404)
 
-        return jsonify({'success': True, 'questions': selection, 'total_questions': len(Question.query.all())})
+        categories = Category.query.order_by(Category.id).all()
+
+        return jsonify({
+            'success': True,
+            'questions': selection,
+            'current_category': None,
+            'categories': [category.format() for category in categories],
+            'total_questions': len(Question.query.all())
+        })
+
+    '''
+    Get single Question
+    '''
+
+    @app.route('/questions/<int:question_id>', methods=['GET'])
+    def get_question(question_id):
+        question = Question.query.get(question_id)
+
+        if question is None:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'question': question.format()
+        })
+
+    ''' 
+    Create an endpoint to handle GET requests 
+    for all available categories.
+    '''
+
+    @app.route('/categories', methods=['GET'])
+    def get_categories():
+        items = Category.query.order_by(Category.id).all()
+
+        if len(items) == 0:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'categories': [category.format() for category in items]
+        })
+
+    @app.route('/questions', methods=['POST'])
+    def add_new_question():
+        body = request.get_json()
+
+        question = body.get('question', None)
+        answer = body.get('answer', None)
+        category = body.get('category', None)
+        difficulty = body.get('difficulty', None)
+
+        try:
+            question = Question(question=question, answer=answer, category=category, difficulty=difficulty)
+            question.insert()
+        except SQLAlchemyError:
+            abort(500)
+
+        return jsonify({
+            'success': True,
+            'question': question.id,
+            'total_question': len(Question.query.all())
+        })
+
+    @app.route('/questions/<int:question_id>', methods=['PATCH'])
+    def update_question(question_id):
+        question = Question.query.get(question_id)
+        success = True
+
+        if question is None:
+            abort(404)
+
+        body = request.get_json()
+
+        if body.get('question') is not None:
+            question.question = body.get('question')
+
+        if body.get('answer') is not None:
+            question.answer = body.get('answer')
+
+        try:
+            question.update()
+        except SQLAlchemyError as e:
+            success = False
+
+        return jsonify({
+            'success': success,
+            'question': question.format()
+        })
 
     @app.errorhandler(404)
     def not_found_error(error):
         return jsonify(success=False, error=404, message="Route not found"), 404
-
-    '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-  '''
-
-    '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
-  '''
-
-    '''
-  @TODO: 
-  Create an endpoint to handle GET requests 
-  for all available categories.
-  '''
-
-    '''
-  @TODO: 
-  Create an endpoint to handle GET requests for questions, 
-  including pagination (every 10 questions). 
-  This endpoint should return a list of questions, 
-  number of total questions, current category, categories. 
-
-  TEST: At this point, when you start the application
-  you should see questions and categories generated,
-  ten questions per page and pagination at the bottom of the screen for three pages.
-  Clicking on the page numbers should update the questions. 
-  '''
 
     '''
   @TODO: 
@@ -108,13 +184,30 @@ def create_app(test_config=None):
   '''
 
     '''
-  @TODO: 
+  Get Question By Category 
   Create a GET endpoint to get questions based on category. 
 
   TEST: In the "List" tab / main screen, clicking on one of the 
   categories in the left column will cause only questions of that 
   category to be shown. 
   '''
+
+    @app.route('/categories/<int:category_id>/questions', methods=['GET'])
+    def get_questions_by_category(category_id):
+        items = Question.query.filter_by(category=category_id).all()
+        selection = paginate_questions(request, items)
+
+        if len(selection) == 0:
+            abort(404)
+
+        category = Category.query.get(category_id)
+
+        return jsonify({
+            'success': True,
+            'questions': selection,
+            'current_category': category.type,
+            'total_questions': len(Question.query.all())
+        })
 
     '''
   @TODO: 

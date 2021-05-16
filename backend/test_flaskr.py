@@ -27,6 +27,13 @@ class TriviaTestCase(unittest.TestCase):
 
         setup_db(self.app, self.database_path)
 
+        self.new_question = {
+            "question": "Who won the 2006 Fifa World Cup?",
+            "answer": "France",
+            "category": "6",
+            "difficulty": "1"
+        }
+
         """ binds the app to the current context """
         with self.app.app_context():
             self.db = SQLAlchemy()
@@ -47,7 +54,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
 
     def execute_request(self, endpoint, method="get", body=None):
-        res = getattr(self.client(), method)(endpoint, body)
+        res = getattr(self.client(), method)(endpoint, json=body)
         data = json.loads(res.data)
 
         return [res, data]
@@ -67,6 +74,15 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertTrue(data['total_questions'])
         self.assertTrue(len(data['questions']))
+
+    def test_add_question(self):
+        res, data = self.execute_request('/questions', 'post', self.new_question)
+        self.is_response_ok(res, data)
+        self.assertGreater(data['question'], 0)
+
+    def test_update_question(self):
+        res, data = self.execute_request(f'/questions/24', 'patch', {'answer': 'Italy'})
+        self.is_response_ok(res, data)
 
 
 # Make the tests conveniently executable

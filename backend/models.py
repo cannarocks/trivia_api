@@ -6,7 +6,8 @@ import json
 
 # From .env var returns the db path
 def get_db_path(test_env=False):
-    db_name = os.environ.get("TEST_DB_NAME", default="trivia_test") if test_env else os.environ.get("DB_NAME", default="trivia")
+    db_name = os.environ.get("TEST_DB_NAME", default="trivia_test") if test_env else os.environ.get("DB_NAME",
+                                                                                                    default="trivia")
     db_user = os.environ.get("DB_USER", default="guest")
     db_psw = os.environ.get("DB_PSW", default="guest")
     database_port = int(os.environ.get("DB_PORT", default=54333))
@@ -67,7 +68,7 @@ class Question(db.Model):
             'id': self.id,
             'question': self.question,
             'answer': self.answer,
-            'category': self.category,
+            'category': Category.query.get(self.category).type,
             'difficulty': self.difficulty
         }
 

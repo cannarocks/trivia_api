@@ -20,7 +20,11 @@ class FormView extends Component {
       url: `/categories`, //TODO: update request URL
       type: "GET",
       success: (result) => {
-        this.setState({ categories: result.categories })
+        let categories = [];
+        result.categories.forEach(category => {
+          categories[category.id] = category.type
+        })
+        this.setState({ categories: categories })
         return;
       },
       error: (error) => {
@@ -65,40 +69,40 @@ class FormView extends Component {
 
   render() {
     return (
-      <div id="add-form">
-        <h2>Add a New Trivia Question</h2>
-        <form className="form-view" id="add-question-form" onSubmit={this.submitQuestion}>
-          <label>
-            Question
-            <input type="text" name="question" onChange={this.handleChange}/>
-          </label>
-          <label>
-            Answer
-            <input type="text" name="answer" onChange={this.handleChange}/>
-          </label>
-          <label>
-            Difficulty
-            <select name="difficulty" onChange={this.handleChange}>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </label>
-          <label>
-            Category
-            <select name="category" onChange={this.handleChange}>
-              {Object.keys(this.state.categories).map(id => {
+        <div id="add-form">
+          <h2>Add a New Trivia Question</h2>
+          <form className="form-view" id="add-question-form" onSubmit={this.submitQuestion}>
+            <label>
+              Question
+              <input type="text" name="question" onChange={this.handleChange}/>
+            </label>
+            <label>
+              Answer
+              <input type="text" name="answer" onChange={this.handleChange}/>
+            </label>
+            <label>
+              Difficulty
+              <select name="difficulty" onChange={this.handleChange}>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+              </select>
+            </label>
+            <label>
+              Category
+              <select name="category" onChange={this.handleChange}>
+                {Object.keys(this.state.categories).map(id => {
                   return (
-                    <option key={id} value={id}>{this.state.categories[id]}</option>
+                      <option key={id} value={id}>{this.state.categories[id]}</option>
                   )
                 })}
-            </select>
-          </label>
-          <input type="submit" className="button" value="Submit" />
-        </form>
-      </div>
+              </select>
+            </label>
+            <input type="submit" className="button" value="Submit" />
+          </form>
+        </div>
     );
   }
 }
