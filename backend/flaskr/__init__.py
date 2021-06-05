@@ -1,6 +1,7 @@
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func, or_
 from flask_cors import CORS
 import random
 
@@ -39,7 +40,7 @@ def create_app(test_config=None):
         return jsonify({'success': True, 'message': "Welcome to Trivia API", 'routes': ['questions', 'categories']})
 
     '''
-         @TODO: 
+         Get Question: 
          Create an endpoint to handle GET requests for questions, 
          including pagination (every 10 questions). 
          This endpoint should return a list of questions, 
@@ -102,27 +103,6 @@ def create_app(test_config=None):
             'categories': [category.format() for category in items]
         })
 
-    @app.route('/questions', methods=['POST'])
-    def add_new_question():
-        body = request.get_json()
-
-        question = body.get('question', None)
-        answer = body.get('answer', None)
-        category = body.get('category', None)
-        difficulty = body.get('difficulty', None)
-
-        try:
-            question = Question(question=question, answer=answer, category=category, difficulty=difficulty)
-            question.insert()
-        except SQLAlchemyError:
-            abort(500)
-
-        return jsonify({
-            'success': True,
-            'question': question.id,
-            'total_question': len(Question.query.all())
-        })
-
     @app.route('/questions/<int:question_id>', methods=['PATCH'])
     def update_question(question_id):
         question = Question.query.get(question_id)
@@ -160,7 +140,8 @@ def create_app(test_config=None):
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page. 
   '''
-    @app.route('/question/<int:question_id>', methods=['DELETE'])
+
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
         question = Question.query.get(question_id)
 
@@ -173,8 +154,9 @@ def create_app(test_config=None):
             'success': True,
             'total_questions': len(Question.query.all())
         })
+
     '''
-  @TODO: 
+  Add new question 
   Create an endpoint to POST a new question, 
   which will require the question and answer text, 
   category, and difficulty score.
@@ -183,6 +165,27 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.  
   '''
+
+    @app.route('/questions', methods=['POST'])
+    def add_new_question():
+        body = request.get_json()
+
+        question = body.get('question', None)
+        answer = body.get('answer', None)
+        category = body.get('category', None)
+        difficulty = body.get('difficulty', None)
+
+        try:
+            question = Question(question=question, answer=answer, category=category, difficulty=difficulty)
+            question.insert()
+        except SQLAlchemyError:
+            abort(500)
+
+        return jsonify({
+            'success': True,
+            'question': question.id,
+            'total_question': len(Question.query.all())
+        })
 
     '''
   @TODO: 
@@ -194,6 +197,29 @@ def create_app(test_config=None):
   only question that include that string within their question. 
   Try using the word "title" to start. 
   '''
+
+    @app.route('/questions/search', methods=['POST'])
+    def find_question():
+        body = request.get_json()
+
+        if body is None or body.get('searchTerm', None) is None:
+            '''Return unfiltered questions'''
+            results = Question.query.order_by(Question.id).all()
+        else:
+            term = body.get('searchTerm').lower()
+            print(term)
+            results = Question.query.filter(
+                or_(
+                    func.lower(Question.question).like(f'%{term}%'),
+                )
+            ).all()
+
+        return jsonify({
+            'success': True,
+            'questions': [question.format() for question in results],
+            'current_category': None,
+            'total_questions': len(results)
+        })
 
     '''
   Get Question By Category 
