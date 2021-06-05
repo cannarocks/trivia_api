@@ -4,9 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, or_
 from flask_cors import CORS
 import random
-
 from sqlalchemy.exc import SQLAlchemyError
-
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
@@ -129,10 +127,6 @@ def create_app(test_config=None):
             'question': question.format()
         })
 
-    @app.errorhandler(404)
-    def not_found_error(error):
-        return jsonify(success=False, error=404, message="Route not found"), 404
-
     '''
   Delete Question 
   Create an endpoint to DELETE question using a question ID. 
@@ -188,7 +182,7 @@ def create_app(test_config=None):
         })
 
     '''
-  @TODO: 
+  Search Questions 
   Create a POST endpoint to get questions based on a search term. 
   It should return any questions for whom the search term 
   is a substring of the question. 
@@ -248,7 +242,7 @@ def create_app(test_config=None):
         })
 
     '''
-  @TODO: 
+  Play Quiz 
   Create a POST endpoint to get questions to play the quiz. 
   This endpoint should take category and previous question parameters 
   and return a random questions within the given category, 
@@ -259,10 +253,47 @@ def create_app(test_config=None):
   and shown whether they were correct or not. 
   '''
 
-    '''
-  @TODO: 
-  Create error handlers for all expected errors 
+    @app.route('/quizzes', methods=['POST'])
+    def play_quiz():
+        body = request.get_json()
+
+        if body is None:
+            abort(422)
+
+        previous_questions = body.get('previous_questions', [])
+        category = body.get('quiz_category', None)
+
+        if category is None or category.get('id') == 0:
+            question = Question.query.filter(~Question.id.in_(previous_questions)).order_by(func.random()).first()
+        else:
+            question = Question.query.filter(
+                Question.category == category.get('id'),
+                ~Question.id.in_(previous_questions)).order_by(func.random()).first()
+
+        return jsonify({
+            'success': True,
+            'question': False if question is None else question.format()
+        })
+
+    ''' 
+  Error handlers for all expected errors 
   including 404 and 422. 
   '''
+
+    @app.errorhandler(404)
+    def not_found_error(error):
+        return jsonify(success=False, error=404, message="Route not found"), 404
+
+    @app.errorhandler(422)
+    def unprocessable_error(error):
+        return jsonify(success=False, error=422, message="Unprocessable request"), 422
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        return jsonify(success=False, error=500, message="Internal server error"), 500
+
+    @app.errorhandler(405)
+    def not_allowed_error(error):
+        return jsonify(success=False, error=405, message="Method not allowed"), 405
 
     return app
