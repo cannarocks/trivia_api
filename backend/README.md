@@ -57,33 +57,134 @@ One note before you delve into your tasks: for each endpoint you are expected to
 
 ## REVIEW_COMMENT
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
-
 Endpoints
-GET '/api/v1.0/categories'
-GET ...
-POST ...
-DELETE ...
 
-GET '/api/v1.0/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+GET '/categories'
+- Fetches a list of categories with ids and the value
 - Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
+- Returns: A list of object, category, with id: category_id, type: category_name.
+{
+  "categories": [
+    {
+      "id": 1, 
+      "type": "Science"
+    }, 
+    {
+      "id": 2, 
+      "type": "Art"
+    }, 
+    {
+      "id": 3, 
+      "type": "Geography"
+    }, 
+    {
+      "id": 4, 
+      "type": "History"
+    }, 
+    {
+      "id": 5, 
+      "type": "Entertainment"
+    }, 
+    {
+      "id": 6, 
+      "type": "Sports"
+    }
+  ], 
+  "success": true
+}
+
+GET '/questions'
+- Fetches a list of questions
+- Request Arguments: None
+- Returns: a list of categories, a list of questions and the current category
+{
+ "questions": [
+    {
+      "answer": "Apollo 13", 
+      "category": "Entertainment", 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }, 
+    {
+      "answer": "Tom Cruise", 
+      "category": "Entertainment", 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }, 
+    ...
+ ],
+  "categories": [
+    {
+      "id": 1, 
+      "type": "Science"
+    }, 
+    {
+      "id": 2, 
+      "type": "Art"
+    }, 
+    ...
+  ],
+  "current_category": null, 
+  "total_questions": 19
+}
+
+POST '/questions'
+- Add a new question
+- Request Arguments: question, answer text, category, and difficulty score.
+{
+  "question": "Who won the 2006 Fifa World Cup?",
+  "answer": "Italy",
+  "category": "6",
+  "difficulty": "1"        
+}
+- Returns: the question_id and the updated total number of questions, or an internal server error on error.
+
+DELETE '/questions/<question_id>'
+- Delete a question, if exist.
+- Request Arguments: None
+- Returns: the total number of questions, or a 404 error if the question is not found
+
+POST '/questions/search'
+- find questions by term
+- Request Arguments: searchTerm: string
+{
+    "searchTerm": "Tom Hanks"
+}
+- Returns: any questions for whom the search term is a substring of the question.
+{
+    "current_category": null,
+    "questions": [
+        {
+            "answer": "Apollo 13",
+            "category": "Entertainment",
+            "difficulty": 4,
+            "id": 2,
+            "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+        }
+    ],
+    "success": true,
+    "total_questions": 1
+}
 
 ```
-
 
 ## Testing
-To run the tests, run
+To run the tests
 ```
-dropdb trivia_test
-createdb trivia_test
-psql trivia_test < trivia.psql
+cd db
+```
+then build the postgres container with
+```
+make application-fresh
+```
+or just reset the db with
+```
+make reset_test_db
+```
+then run the test
+```
+cd ../../backend
 python test_flaskr.py
 ```
