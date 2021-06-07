@@ -75,14 +75,46 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['total_questions'])
         self.assertTrue(len(data['questions']))
 
+    def test_get_single_question(self):
+        res, data = self.execute_request('/questions/2')
+        self.is_response_ok(res, data)
+        self.assertTrue(data['question'])
+
     def test_add_question(self):
         res, data = self.execute_request('/questions', 'post', self.new_question)
         self.is_response_ok(res, data)
         self.assertGreater(data['question'], 0)
 
     def test_update_question(self):
-        res, data = self.execute_request(f'/questions/24', 'patch', {'answer': 'Italy'})
+        res, data = self.execute_request('/questions/24', 'patch', {'answer': 'Italy'})
         self.is_response_ok(res, data)
+
+    def test_delete_question(self):
+        res, data = self.execute_request('/questions', 'post', self.new_question)
+        if data['success']:
+            question_id = data['question']
+            res, data = self.execute_request(f'/questions/{question_id}', 'delete')
+            self.is_response_ok(res, data)
+
+    def test_get_categories(self):
+        res, data = self.execute_request('/categories')
+        self.is_response_ok(res, data)
+
+        self.assertTrue(len(data['categories']))
+
+    def test_get_single_category(self):
+        res, data = self.execute_request('/categories/1')
+        self.is_response_ok(res, data)
+
+        self.assertTrue(data['category'])
+
+    def test_not_found_questions(self):
+        res, data = self.execute_request('/questions/999')
+        self.assertEqual(res.status_code, 404)
+
+    def test_not_found_categories(self):
+        res, data = self.execute_request('/categories/999')
+        self.assertEqual(res.status_code, 404)
 
 
 # Make the tests conveniently executable

@@ -35,7 +35,11 @@ def create_app(test_config=None):
 
     @app.route('/')
     def home():
-        return jsonify({'success': True, 'message': "Welcome to Trivia API", 'routes': ['questions', 'categories']})
+        return jsonify({
+            'success': True,
+            'message': "Welcome to Trivia API",
+            'routes': ['questions', 'categories', 'quizzes']
+        })
 
     '''
          Get Question: 
@@ -99,6 +103,22 @@ def create_app(test_config=None):
         return jsonify({
             'success': True,
             'categories': [category.format() for category in items]
+        })
+
+    ''' 
+    Endpoint to handle GET requests 
+    for single categories.
+    '''
+    @app.route('/categories/<int:category_id>', methods=['GET'])
+    def get_single_category(category_id):
+        category = Category.query.get(category_id)
+
+        if category is None:
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'category': category.format()
         })
 
     @app.route('/questions/<int:question_id>', methods=['PATCH'])
